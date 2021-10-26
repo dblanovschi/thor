@@ -21,7 +21,7 @@ let
 
   valid-action = act: (builtins.any (a: act == a) valid-actions);
 
-  action-commons-path = act: (./. + "/${act}/${act}-commons.nix");
+  action-commons-path = act: (./. + "/toolchains/${act}/${act}-commons.nix");
 
   getToolchain =
     toolchain:
