@@ -3,5 +3,5 @@
 {
   inherit pkgs;
 
-  mkShell = (import ./nix/shell.nix) pkgs;
+  mkShell = (import ./nix/shell.nix) {inherit pkgs;};
 }
