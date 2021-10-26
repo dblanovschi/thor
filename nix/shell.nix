@@ -1,5 +1,6 @@
-{ pkgs
-, lib ? pkgs.lib
+{ pkgs }:
+
+{ lib ? pkgs.lib
 , toolchain-name ? "nightly-musl"
 , extraNativeBuildInputs ? [ ]
 , extraBuildInputs ? [ ]
