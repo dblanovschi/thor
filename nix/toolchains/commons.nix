@@ -66,16 +66,14 @@ rec {
 
   createToolchain =
     { profile, baseExtensions ? [ ] }:
-    { target, toolchain, extraExtensions ? [ ] }: {
+    { target, toolchain, extraExtensions ? [ ] }: let t = (builtins.trace toolchain toolchain); in {
       inherit target;
 
+      toolchain = toolchain profile {
+        extensions = lib.unique (baseExtensions ++ extraExtensions);
+        targets = [ target ];
+      };
+
       isNightly = (toolchain == nightly);
-    } // (
-      let toolchain' = toolchain; in {
-        toolchain = toolchain' profile {
-          extensions = lib.unique (baseExtensions ++ extraExtensions);
-          targets = [ target ];
-        };
-      }
-    );
+    };
 }
