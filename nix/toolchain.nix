@@ -32,7 +32,7 @@ let
         else
           (
             if valid-toolchain-struct toolchain
-            then ((import (action-commons-path action) {inherit pkgs;}).createToolchain) toolchain
+            then ((import (action-commons-path action) { inherit pkgs; }).createToolchain) toolchain
             else abort "ERROR: unknown toolchain ${builtins.toJSON toolchain}, valid values are ${builtins.toJSON valid-toolchains} and {target=...; toolchain=...;}"
           )
       )

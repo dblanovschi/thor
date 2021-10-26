@@ -52,10 +52,13 @@ rec {
   nightly =
     profile:
     override:
-    (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (util-override toolchain profile override)));
+    {
+      t = (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (util-override toolchain profile override)));
+      isNightly = true;
+    };
 
-  beta = util-override btl;
-  stable = util-override stl;
+  beta = profile: override: { t = util-override btl profile override; isNightly = false; };
+  stable = profile: override: { t = util-override stl profile override; isNightly = false; };
 
   from-toolchain = pkgs.rust-bin.fromRustupToolchainFile;
 
@@ -64,11 +67,11 @@ rec {
     { target, toolchain, extraExtensions ? [ ] }: {
       inherit target;
 
-      toolchain = toolchain profile {
+      toolchain = (toolchain.t) profile {
         extensions = lib.unique (baseExtensions ++ extraExtensions);
         targets = [ target ];
       };
 
-      isNightly = (toolchain == nightly);
+      isNightly = toolchain.isNightly;
     };
 }
