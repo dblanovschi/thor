@@ -1,3 +1,3 @@
 {
-  addOne = x: x + 1;
+  mkShell = import ./nix/shell.nix;
 }
