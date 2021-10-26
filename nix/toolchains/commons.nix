@@ -54,22 +54,17 @@ rec {
     override:
     (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (util-override toolchain profile override)));
 
-  beta-minimal = minimal btl;
-  beta-default = default btl;
   beta = util-override btl;
-
-  stable-minimal = minimal stl;
-  stable-default = default stl;
   stable = util-override stl;
 
   from-toolchain = pkgs.rust-bin.fromRustupToolchainFile;
 
   createToolchain =
     { profile, baseExtensions ? [ ] }:
-    { target, toolchain, extraExtensions ? [ ] }: let t = (builtins.trace toolchain toolchain); in {
+    { target, toolchain, extraExtensions ? [ ] }: {
       inherit target;
 
-      toolchain = t profile {
+      toolchain = toolchain profile {
         extensions = lib.unique (baseExtensions ++ extraExtensions);
         targets = [ target ];
       };
