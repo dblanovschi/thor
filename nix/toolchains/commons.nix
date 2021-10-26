@@ -2,8 +2,13 @@
 
 let
   st = pkgs.rust-bin.stable;
+  stl = st.latest;
+
   bt = pkgs.rust-bin.beta;
+  btl = bt.latest;
+
   nt = pkgs.rust-bin.nightly;
+  ntl = nt.latest;
 
   ttt = { arch, type, os, lib }: "${arch}-${type}-${os}-${lib}";
 
@@ -51,13 +56,13 @@ rec {
     override:
     (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (util-override toolchain profile override)));
 
-  beta-minimal = minimal bt;
-  beta-default = default bt;
-  beta = util-override bt;
+  beta-minimal = minimal btl;
+  beta-default = default btl;
+  beta = util-override btl;
 
-  stable-minimal = minimal st;
-  stable-default = default st;
-  stable = util-override st;
+  stable-minimal = minimal stl;
+  stable-default = default stl;
+  stable = util-override stl;
 
   from-toolchain = pkgs.rust-bin.fromRustupToolchainFile;
 

@@ -14,17 +14,30 @@ let
     "build"
   ];
 
-  valid-toolchain = t: (builtins.any (tch: t == tch) valid-toolchains);
+  valid-toolchain-name = tch: (builtins.any (t: tch == t) valid-toolchains);
+  valid-toolchain-struct =
+    tch: builtins.hasAttr "toolchain" tch
+      && builtins.hasAttr "target" tch;
+
   valid-action = act: (builtins.any (a: act == a) valid-actions);
 
-  path-for =
+  action-commons-path = act: ./. "/${act}/${act}-commons.nix";
+
+  getToolchain =
     toolchain:
     action:
-    if valid-toolchain toolchain
-    then if valid-action action then ./. + "/toolchains/${action}/${toolchain}.nix"
-    else abort "ERROR: rust-setup: unknown action ${builtins.toJSON action}, valid values are ${builtins.toJSON valid-actions}"
-    else abort "ERROR: rust-setup: unknown toolchain ${builtins.toJSON toolchain}, valid values are ${builtins.toJSON valid-toolchains}";
+    if valid-action action
+    then
+      (
+        if valid-toolchain-name toolchain then import (./. + "/toolchains/${action}/${toolchain}.nix") { inherit pkgs; }
+        else
+          (
+            if valid-toolchain-struct toolchain
+            then (import (action-commons-path action)).createToolchain toolchain
+            else abort "ERROR: unknown toolchain ${builtins.toJSON toolchain}, valid values are ${builtins.toJSON valid-toolchains} and {target=...; toolchain=...;}"
+          )
+      )
+    else abort "ERROR: unknown action ${builtins.toJSON action}, valid values are ${builtins.toJSON valid-actions}";
 
 in
-
-import (path-for toolchain action) { inherit pkgs; }
+getToolchain toolchain action

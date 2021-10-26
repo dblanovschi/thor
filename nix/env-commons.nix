@@ -3,12 +3,14 @@
 , enableNightlyOpts
 , uselld
 , lib
-, toolchain-utils ? import ./toolchains/utils.nix { inherit lib; }
 }:
 
 let
   t = target.targetTriple;
-  TT = toolchain-utils.targetTripleEnv t;
+
+  targetTripleForEnv = s: lib.toUpper (lib.replaceChars [ "-" ] [ "_" ] s);
+  TT = targetTripleForEnv t;
+
   useNightlyOpts = isNightly && enableNightlyOpts;
 
   linkerRustFlags = lld: lib.optionals lld [ "-Clink-arg=-fuse-ld=lld" ];
