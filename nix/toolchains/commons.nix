@@ -49,16 +49,15 @@ rec {
   minimal = toolchain: toolchain.minimal;
   default = toolchain: toolchain.default;
 
-  nightly =
-    profile:
-    override:
-    {
-      t = (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (util-override toolchain profile override)));
-      isNightly = true;
-    };
+  nightly = {
+    t = profile:
+      override:
+      (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (util-override toolchain profile override)));
+    isNightly = true;
+  };
 
-  beta = profile: override: { t = util-override btl profile override; isNightly = false; };
-  stable = profile: override: { t = util-override stl profile override; isNightly = false; };
+  beta = { t = util-override btl; isNightly = false; };
+  stable = { t = util-override stl; isNightly = false; };
 
   from-toolchain = pkgs.rust-bin.fromRustupToolchainFile;
 
