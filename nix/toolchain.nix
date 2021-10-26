@@ -16,8 +16,7 @@ let
 
   valid-toolchain-name = tch: (builtins.any (t: tch == t) valid-toolchains);
   valid-toolchain-struct =
-    tch: builtins.hasAttr "toolchain" tch
-      && builtins.hasAttr "target" tch;
+    tch: tch ? toolchain && tch ? target;
 
   valid-action = act: (builtins.any (a: act == a) valid-actions);
 
