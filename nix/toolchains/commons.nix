@@ -49,8 +49,6 @@ rec {
   minimal = toolchain: toolchain.minimal;
   default = toolchain: toolchain.default;
 
-  nightly-minimal = minimal nt;
-  nightly-default = default nt;
   nightly =
     profile:
     override:
