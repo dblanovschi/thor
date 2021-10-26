@@ -69,7 +69,7 @@ rec {
     { target, toolchain, extraExtensions ? [ ] }: {
       inherit target;
 
-      toolchain = toolchain profile {
+      toolchain = (builtins.trace toolchain toolchain) profile {
         extensions = lib.unique (baseExtensions ++ extraExtensions);
         targets = [ target ];
       };
