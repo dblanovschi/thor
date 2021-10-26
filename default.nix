@@ -8,7 +8,7 @@
 {
   inherit pkgs;
 
-  mkShell = import ./nix/shell.nix { inherit pkgs; };
+  mkRustShell = import ./nix/shell.nix { inherit pkgs; };
   toolchainCommons = import ./nix/toolchains/commons.nix { inherit pkgs; };
   toolchain =
     { toolchain, action ? "dev" }:
