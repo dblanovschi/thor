@@ -1,40 +1,35 @@
-{ pkgs }:
-
-{ lib ? pkgs.lib
-, toolchain ? "nightly-musl"
-, extraNativeBuildInputs ? [ ]
-, extraBuildInputs ? [ ]
-, preCargoSetup ? ""
-, postCargoSetup ? ""
-, setupCargoEnv ? true
-, uselld ? true
-, enableNightlyOpts ? true
-}:
+{ pkgs, lib ? pkgs.lib }:
 
 let
-  toolchain' = (import ./toolchain.nix {
-    inherit pkgs toolchain;
-    action = "dev";
-  });
-  env-commons = (import ./env-commons.nix {
-    inherit lib uselld enableNightlyOpts;
-    target = toolchain'.target;
-    isNightly = toolchain'.isNightly;
-  });
-  cargoEnvSetupSh = if setupCargoEnv then env-commons.setup else "";
+  mergeShells' = shellA: shellB: {
+    packages = shellA.packages ++ (shellB.packages or [ ]);
+    inputsFrom = shellA.inputsFrom ++ (shellB.inputsFrom or [ ]);
+    buildInputs = shellA.buildInputs ++ (shellB.buildInputs or [ ]);
+    nativeBuildInputs = shellA.nativeBuildInputs ++ (shellB.nativeBuildInputs or [ ]);
+
+    shellHook = shellA.shellHook + (shellB.shellHook or "") + "\n";
+  };
+
+  unique-lize = shell: shell //
+    (
+      let unique = lib.unique; in
+      {
+        packages = unique shell.packages;
+        inputsFrom = unique shell.inputsFrom;
+        buildInputs = unique shell.buildInputs;
+        nativeBuildInputs = unique shell.nativeBuildInputs;
+      }
+    );
 in
-pkgs.mkShell {
-  nativeBuildInputs = [
-    toolchain'.toolchain
-  ] ++ extraNativeBuildInputs
-  ++ lib.optionals uselld [
-    pkgs.clang_12
-    pkgs.lld_12
-  ];
+rec {
+  mergeShells = unique-lize lib.foldl mergeShells' {
+    packages = [ ];
+    inputsFrom = [ ];
+    buildInputs = [ ];
+    nativeBuildInputs = [ ];
 
-  buildInputs = [
-    pkgs.nixpkgs-fmt
-  ] ++ extraBuildInputs;
+    shellHook = "";
+  };
 
-  shellHook = preCargoSetup + cargoEnvSetupSh + postCargoSetup;
+  mkMergedShell = shells: pkgs.mkShell (mergeShells shells);
 }

@@ -1,4 +1,4 @@
-{ pkgs, lib ? pkgs.lib }:
+{ pkgs, lib ? pkgs.lib, config }:
 
 let
   st = pkgs.rust-bin.stable;
@@ -10,24 +10,30 @@ let
   nt = pkgs.rust-bin.nightly;
   ntl = nt.latest;
 
-  ttt = { arch, type, os, lib }: "${arch}-${type}-${os}-${lib}";
+  missingValue = ".";
 
-  createTargetTriple = { arch, type ? "unknown", os, lib }: {
+  ttt = { arch, type, os, lib }:
+    arch +
+    (if type != missingValue then "-${type}" else "") +
+    "-${os}" +
+    (if lib != missingValue then "-${lib}" else "");
+
+  createTargetTriple = { arch, type ? missingValue, os, lib ? missingValue }: {
     inherit arch type os lib;
 
     targetTriple = ttt { inherit arch type os lib; };
   };
 
   applyOverrideTargetMap = ov: ov // { targets = (map (it: it.targetTriple) ov.targets); };
-  util-override = toolchain: profile: override: (profile toolchain).override (applyOverrideTargetMap override);
+  utilOverride = toolchain: profile: override: (profile toolchain).override (applyOverrideTargetMap override);
 in
 rec {
   targets = rec {
     x86_64-windows-msvc = createTargetTriple { arch = "x86_64"; type = "pc"; os = "windows"; lib = "msvc"; };
     x86_64-windows-gnu = createTargetTriple { arch = "x86_64"; type = "pc"; os = "windows"; lib = "gnu"; };
 
-    x86_64-linux-musl = createTargetTriple { arch = "x86_64"; os = "linux"; lib = "musl"; };
-    x86_64-linux-gnu = createTargetTriple { arch = "x86_64"; os = "linux"; lib = "gnu"; };
+    x86_64-linux-musl = createTargetTriple { arch = "x86_64"; type = "unknown"; os = "linux"; lib = "musl"; };
+    x86_64-linux-gnu = createTargetTriple { arch = "x86_64"; type = "unknown"; os = "linux"; lib = "gnu"; };
 
     i686-windows-msvc = createTargetTriple { arch = "i686"; type = "pc"; os = "windows"; lib = "msvc"; };
     i686-windows-gnu = createTargetTriple { arch = "i686"; type = "pc"; os = "windows"; lib = "gnu"; };
@@ -52,12 +58,12 @@ rec {
   nightly = {
     t = profile:
       override:
-      (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (util-override toolchain profile override)));
+      (pkgs.rust-bin.selectLatestNightlyWith (toolchain: (utilOverride toolchain profile override)));
     isNightly = true;
   };
 
-  beta = { t = util-override btl; isNightly = false; };
-  stable = { t = util-override stl; isNightly = false; };
+  beta = { t = utilOverride btl; isNightly = false; };
+  stable = { t = utilOverride stl; isNightly = false; };
 
   from-toolchain = pkgs.rust-bin.fromRustupToolchainFile;
 

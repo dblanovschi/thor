@@ -1,4 +1,4 @@
-{ pkgs, commons ? import ../commons.nix { inherit pkgs; }, lib ? pkgs.lib }:
+{ pkgs, config, commons ? import ../commons.nix { inherit pkgs config; }, lib ? pkgs.lib }:
 
 {
   inherit commons;

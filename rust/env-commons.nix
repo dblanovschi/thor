@@ -2,7 +2,9 @@
 , isNightly
 , enableNightlyOpts
 , uselld
+, cargoAliases
 , lib
+, config
 }:
 
 let
@@ -20,6 +22,8 @@ let
   rustFlags = { lld, nightlyOpts }: linkerRustFlags lld ++ nightlyRustFlags nightlyOpts;
   rustFlagsStr = { lld, nightlyOpts }: builtins.concatStringsSep " " (rustFlags { inherit lld nightlyOpts; });
 
+  cargoAliasesList = lib.mapAttrsToList (name: value: ''export CARGO_ALIAS_${lib.toUpper name}="${value}"'');
+
   cargoSetupList = [
     ''export CARGO_BUILD_TARGET="${t}"''
   ]
@@ -33,7 +37,7 @@ let
           nightlyOpts = useNightlyOpts;
         }
       }"''
-  ];
+  ] ++ cargoAliasesList cargoAliases;
 in
 {
   setup = builtins.concatStringsSep "\n" cargoSetupList;
