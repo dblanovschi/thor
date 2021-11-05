@@ -30,7 +30,7 @@ rec {
       });
       cargoEnvSetupSh = if setupCargoEnv then envCommons.setup else "";
       shellAliasesList = lib.mapAttrsToList (name: value: ''alias ${name}="${value}"'');
-      shellAliasesStr = builtins.concatStringsSep "\n" shellAliasesList;
+      shellAliasesStr = builtins.concatStringsSep "\n" (shellAliasesList shellAliases);
     in
     {
       nativeBuildInputs = [
