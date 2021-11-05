@@ -42,6 +42,7 @@ let
   ++ cargoAliasesList cargoAliases
   ++ (if enableIncremental then [
     ''export CARGO_INCREMENTAL=1''
+    ''export RUSTC_FORCE_INCREMENTAL=1''
   ] else [
     ''export CARGO_INCREMENTAL=0''
   ]);
