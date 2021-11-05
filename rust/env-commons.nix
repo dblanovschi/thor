@@ -23,30 +23,29 @@ let
   rustFlags = { lld, nightlyOpts }: linkerRustFlags lld ++ nightlyRustFlags nightlyOpts;
   rustFlagsStr = { lld, nightlyOpts }: builtins.concatStringsSep " " (rustFlags { inherit lld nightlyOpts; });
 
-  cargoAliasesList = lib.mapAttrsToList (name: value: ''export CARGO_ALIAS_${lib.toUpper name}="${value}"'');
+  cargoAliasesEnvAttrset = lib.mapAttrs' (name: value: lib.nameValuePair "CARGO_ALIAS_${lib.toUpper name}" value);
 
-  cargoSetupList = [
-    ''export CARGO_BUILD_TARGET="${t}"''
-  ]
-  ++ lib.optionals uselld [
-    ''export CARGO_TARGET_${TT}_LINKER="clang"''
-  ]
-  ++ [
-    ''export CARGO_TARGET_${TT}_RUSTFLAGS="${
+  cargoSetupEnvAttrset = { CARGO_BUILD_TARGET = "${t}"; }
+    // lib.optionalAttrs uselld {
+    "CARGO_TARGET_${TT}_LINKER" = "clang";
+  }
+    // {
+    "CARGO_TARGET_${TT}_RUSTFLAGS" = "${
         rustFlagsStr {
           lld = uselld;
           nightlyOpts = useNightlyOpts;
         }
-      }"''
-  ]
-  ++ cargoAliasesList cargoAliases
-  ++ (if enableIncremental then [
-    ''export CARGO_INCREMENTAL=1''
-    ''export RUSTC_FORCE_INCREMENTAL=1''
-  ] else [
-    ''export CARGO_INCREMENTAL=0''
-  ]);
+      }";
+  }
+    // cargoAliasesEnvAttrset cargoAliases
+    // (if enableIncremental then {
+    CARGO_INCREMENTAL = "1";
+    # RUSTC_FORCE_INCREMENTAL = "1";
+  } else {
+    CARGO_INCREMENTAL = "0";
+    # RUSTC_FORCE_INCREMENTAL = "0";
+  });
 in
 {
-  setup = builtins.concatStringsSep "\n" cargoSetupList;
+  setup = cargoSetupEnvAttrset;
 }

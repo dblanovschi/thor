@@ -1,4 +1,4 @@
-{ pkgs, toolchain, config, action ? "dev" }:
+{ pkgs, toolchain, config, action, extraToolchainComponents }:
 
 
 let
@@ -28,12 +28,12 @@ let
     then
       (
         if validToolchainName toolchain
-        then import (./. + "/toolchains/${action}/${toolchain}.nix") { inherit pkgs config; }
+        then import (./. + "/toolchains/${action}/${toolchain}.nix") { inherit pkgs config extraToolchainComponents; }
         else
           (
             if validToolchainStruct toolchain
             then ((import (actionCommonsPath action) { inherit pkgs config; }).createToolchain) toolchain
-            else abort "ERROR: unknown toolchain ${builtins.toJSON toolchain}, valid values are ${builtins.toJSON validToolchains} and {target=...; toolchain=...;}"
+            else abort "ERROR: unknown toolchain ${builtins.toJSON toolchain}, valid values are ${builtins.toJSON validToolchains} and {target=...; toolchain=...; extraToolchainComponents=...;}"
           )
       )
     else abort "ERROR: unknown action ${builtins.toJSON action}, valid values are ${builtins.toJSON validActions}";

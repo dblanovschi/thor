@@ -6,6 +6,7 @@ in
 rec {
   default = {
     rust = rust'.default;
+    shell = "bash";
   };
 
   build = lib.recursiveUpdate default;

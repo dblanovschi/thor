@@ -1,10 +1,10 @@
 # for development use in thor only!
 # used as an environment for vscode
 
-{pkgs ? import <nixpkgs> {}}:
+{ pkgs ? import <nixpkgs> { } }:
 
 pkgs.mkShell {
-    buildInputs = with pkgs; [
-        nixpkgs-fmt
-    ];
+  buildInputs = with pkgs; [
+    nixpkgs-fmt
+  ];
 }

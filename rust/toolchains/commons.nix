@@ -69,11 +69,11 @@ rec {
 
   createToolchain =
     { profile, baseExtensions ? [ ] }:
-    { target, toolchain, extraExtensions ? [ ] }: {
+    { target, toolchain, extraToolchainComponents ? [ ] }: {
       inherit target;
 
       toolchain = (toolchain.t) profile {
-        extensions = lib.unique (baseExtensions ++ extraExtensions);
+        extensions = lib.unique (baseExtensions ++ extraToolchainComponents);
         targets = [ target ];
       };
 

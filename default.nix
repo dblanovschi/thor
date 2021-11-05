@@ -18,7 +18,7 @@ let
           { toolchain, action ? "dev" }:
           import ./rust/toolchain.nix { inherit pkgs toolchain action; config = c'; };
 
-        inherit (import ./rust/shell.nix { inherit pkgs; config = c'; }) mkRustShell rustShell;
+        inherit (import ./rust/derivation.nix { inherit pkgs; config = c'; }) mkRustDerivation rustDerivation;
       };
     } else { };
 
