@@ -14,6 +14,7 @@ rec {
     , uselld ? true
     , enableNightlyOpts ? true
     , cargoAliases ? {}
+    , enableIncremental ? false
     }:
 
     let
@@ -22,7 +23,7 @@ rec {
         action = "dev";
       });
       envCommons = (import ./env-commons.nix {
-        inherit uselld enableNightlyOpts cargoAliases lib config;
+        inherit uselld enableNightlyOpts cargoAliases enableIncremental lib config;
         target = toolchain'.target;
         isNightly = toolchain'.isNightly;
       });

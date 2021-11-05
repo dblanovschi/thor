@@ -3,6 +3,7 @@
 , enableNightlyOpts
 , uselld
 , cargoAliases
+, enableIncremental
 , lib
 , config
 }:
@@ -37,7 +38,13 @@ let
           nightlyOpts = useNightlyOpts;
         }
       }"''
-  ] ++ cargoAliasesList cargoAliases;
+  ]
+  ++ cargoAliasesList cargoAliases
+  ++ (if enableIncremental then [
+    ''export CARGO_INCREMENTAL=1''
+  ] else [
+    ''export CARGO_INCREMENTAL=0''
+  ]);
 in
 {
   setup = builtins.concatStringsSep "\n" cargoSetupList;
