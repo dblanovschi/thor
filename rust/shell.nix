@@ -14,6 +14,7 @@ rec {
     , uselld ? true
     , enableNightlyOpts ? true
     , cargoAliases ? {}
+    , shellAliases ? {}
     , enableIncremental ? false
     }:
 
@@ -28,6 +29,8 @@ rec {
         isNightly = toolchain'.isNightly;
       });
       cargoEnvSetupSh = if setupCargoEnv then envCommons.setup else "";
+      shellAliasesList = lib.mapAttrsToList (name: value: ''alias ${name}="${value}"'');
+      shellAliasesStr = builtins.concatStringsSep "\n" shellAliasesList;
     in
     {
       nativeBuildInputs = [
@@ -40,6 +43,9 @@ rec {
 
       buildInputs = [ ] ++ extraBuildInputs;
 
-      shellHook = preCargoSetup + cargoEnvSetupSh + postCargoSetup;
+      shellHook = preCargoSetup + "\n"
+                + cargoEnvSetupSh + "\n"
+		+ postCargoSetup + "\n"
+		+ shellAliasesStr + "\n";
     };
 }
