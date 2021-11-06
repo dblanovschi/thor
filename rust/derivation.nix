@@ -1,5 +1,8 @@
 { pkgs, stdenv ? pkgs.stdenv, config }:
 
+let
+  isBuild = phases: phases.build or true;
+in
 rec {
   mkRustDerivation = setup: stdenv.mkDerivation (rustDerivation setup);
 
@@ -30,8 +33,8 @@ rec {
     , hasVendor ? false
     , hasVendorConfig ? false
     }:
-      assert (src == null) != (srcs == null);
-      assert (cargoLock == null) != (cargoLockContents == null);
+      assert isBuild phases && ((src == null) != (srcs == null));
+      assert isBuild phases && ((cargoLock == null) != (cargoLockContents == null));
 
       let
         zdotdir = import
