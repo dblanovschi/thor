@@ -27,6 +27,8 @@ rec {
     , enableIncremental ? false
     , action ? "dev"
     , phases ? { }
+    , hasVendor ? false
+    , hasVendorConfig ? false
     }:
       assert (src == null) != (srcs == null);
       assert (cargoLock == null) != (cargoLockContents == null);
@@ -171,20 +173,31 @@ rec {
                 ${phase} = s.${phase} or "";
               })
               phases))
-          // {
-            thor_setupVendor = ''
-              ln -s ${vendorDer packages}/vendor ./vendor
+          // (
+            let setupVendorConfig =
+              if hasVendorConfig
+              then ""
+              else ''
+                mkdir -p .cargo
+                cat >> .cargo/config <<EOF
+                [source.crates-io]
+                replace-with = "vendored-sources"
 
-              mkdir .cargo
-              cat >> .cargo/config <<EOF
-              [source.crates-io]
-              replace-with = "vendored-sources"
+                [source.vendored-sources]
+                directory = "vendor"
+                EOF
+              '';
+            in
+            if hasVendor then {
+              thor_setupVendor = setupVendorConfig;
+            } else {
+              thor_setupVendor = ''
+                ln -s ${vendorDer packages}/vendor ./vendor
 
-              [source.vendored-sources]
-              directory = "vendor"
-              EOF
-            '';
-          };
+                ${setupVendorConfig}
+              '';
+            }
+          );
       in
       (implPhases phases) //
       {
