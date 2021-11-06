@@ -33,8 +33,8 @@ rec {
     , hasVendor ? false
     , hasVendorConfig ? false
     }:
-      assert isBuild phases && ((src == null) != (srcs == null));
-      assert isBuild phases && ((cargoLock == null) != (cargoLockContents == null));
+      assert (! isBuild phases) || ((src == null) != (srcs == null));
+      assert (! isBuild phases) || ((cargoLock == null) != (cargoLockContents == null));
 
       let
         zdotdir = import
