@@ -136,68 +136,78 @@ rec {
         };
 
         implPhases =
-          s@{ phases ? [
-                # "prePhases" # $
-                "unpackPhase"
-                "patchPhase"
-                # "preConfigurePhases" # $
-                "configurePhase"
-                # "preBuildPhases" # $
-                "buildPhase"
-                "checkPhase"
-                # "preInstallPhases" # $
-                "installPhase"
-                "fixupPhase"
-                "installCheckPhase"
-                # "preDistPhases" # $
-                "distPhase"
-                # "postPhases" # $
-              ]
+          s@{ build ? true
+          , phases ? [
+              # "prePhases" # $
+              "unpackPhase"
+              "patchPhase"
+              # "preConfigurePhases" # $
+              "configurePhase"
+              # "preBuildPhases" # $
+              "buildPhase"
+              "checkPhase"
+              # "preInstallPhases" # $
+              "installPhase"
+              "fixupPhase"
+              "installCheckPhase"
+              # "preDistPhases" # $
+              "distPhase"
+              # "postPhases" # $
+            ]
           , ...
           }:
-          let p' = [ "thor_setupVendor" ] ++ phases; in
-          {
-            phases = p';
-          } // lib.mapAttrs
-            (name: value:
-            if value != "" then
-              (
-                ''
-                  ${shellAliasesStr buildShellAliases}
+          if ! build then {
+            phases = [ "noBuild" ];
+            noBuild = ''
+              echo
+              echo "Not meant to be built, aborting"
+              echo
+              exit 1
+            '';
+          } else
+            let p' = [ "thor_setupVendor" ] ++ phases; in
+            {
+              phases = p';
+            } // lib.mapAttrs
+              (name: value:
+              if value != "" then
+                (
+                  ''
+                    ${shellAliasesStr buildShellAliases}
 
-                  ${value}
-                ''
-              ) else "")
-            (lib.fold (a: b: a // b) { } (builtins.map
-              (phase: {
-                ${phase} = s.${phase} or "";
-              })
-              phases))
-          // (
-            let setupVendorConfig =
-              if hasVendorConfig
-              then ""
-              else ''
-                mkdir -p .cargo
-                cat >> .cargo/config <<EOF
-                [source.crates-io]
-                replace-with = "vendored-sources"
+                    ${value}
+                  ''
+                ) else "")
+              (lib.fold (a: b: a // b) { } (builtins.map
+                (phase: {
+                  ${phase} = s.${phase} or "";
+                })
+                phases))
+            // (
+              let setupVendorConfig =
+                if hasVendorConfig
+                then ""
+                else ''
+                  mkdir -p .cargo
+                  cat >> .cargo/config <<EOF
+                  [source.crates-io]
+                  replace-with = "vendored-sources"
 
-                [source.vendored-sources]
-                directory = "vendor"
-                EOF
-              '';
-            in
-            if hasVendor then {
-              thor_setupVendor = setupVendorConfig;
-            } else {
-              thor_setupVendor = ''
-                ln -s ${vendorDer packages}/vendor ./vendor
+                  [source.vendored-sources]
+                  directory = "vendor"
+                  EOF
+                '';
+              in
+              if hasVendor then {
+                thor_setupVendor = setupVendorConfig;
+              } else {
+                thor_setupVendor = ''
+                  ln -s ${vendorDer packages}/vendor ./vendor
 
-                ${setupVendorConfig}
-              '';
-            }
-          );
+                  ${setupVendorConfig}
+                '';
+              }
+            );
       in
       (implPhases phases) //
       {
