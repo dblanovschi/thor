@@ -2,6 +2,11 @@
   default = {
     enable = false;
     defaultToolchain = "nightly-musl";
+
+    # doctests do not run unless target = host
+    # even x86_64-unknown-linux-musl doesn't work when on linux
+    # (https://github.com/rust-lang/rust/issues/44404)
+    defaultTestTarget = "x86_64-unknown-linux-gnu";
   };
 
   check = self: pkgs:

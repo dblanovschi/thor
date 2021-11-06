@@ -1,4 +1,5 @@
-{ target
+{ targets
+, defaultTarget
 , isNightly
 , enableNightlyOpts
 , uselld
@@ -9,10 +10,8 @@
 }:
 
 let
-  t = target.targetTriple;
-
   targetTripleForEnv = s: lib.toUpper (lib.replaceChars [ "-" ] [ "_" ] s);
-  TT = targetTripleForEnv t;
+  TT = t: targetTripleForEnv (t.targetTriple);
 
   useNightlyOpts = isNightly && enableNightlyOpts;
 
@@ -25,18 +24,20 @@ let
 
   cargoAliasesEnvAttrset = lib.mapAttrs' (name: value: lib.nameValuePair "CARGO_ALIAS_${lib.toUpper name}" value);
 
-  cargoSetupEnvAttrset = { CARGO_BUILD_TARGET = "${t}"; }
-    // lib.optionalAttrs uselld {
-    "CARGO_TARGET_${TT}_LINKER" = "clang";
-  }
-    // {
-    "CARGO_TARGET_${TT}_RUSTFLAGS" = "${
+  targetOpts = t: lib.optionalAttrs uselld
+    {
+      "CARGO_TARGET_${TT t}_LINKER" = "clang";
+    }
+  // {
+    "CARGO_TARGET_${TT t}_RUSTFLAGS" = "${
         rustFlagsStr {
           lld = uselld;
           nightlyOpts = useNightlyOpts;
         }
       }";
-  }
+  };
+
+  baseEnvAttrSet = { CARGO_BUILD_TARGET = "${defaultTarget.targetTriple}"; }
     // cargoAliasesEnvAttrset cargoAliases
     // (if enableIncremental then {
     CARGO_INCREMENTAL = "1";
@@ -45,6 +46,8 @@ let
     CARGO_INCREMENTAL = "0";
     # RUSTC_FORCE_INCREMENTAL = "0";
   });
+
+  cargoSetupEnvAttrset = lib.foldl' (a: b: a//b) baseEnvAttrSet (builtins.map targetOpts targets);
 in
 {
   setup = cargoSetupEnvAttrset;

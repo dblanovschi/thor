@@ -43,13 +43,28 @@ rec {
         });
         envCommons = (import ./env-commons.nix {
           inherit uselld enableNightlyOpts cargoAliases enableIncremental lib config;
-          target = toolchain'.target;
+          inherit (toolchain') targets defaultTarget;
           isNightly = toolchain'.isNightly;
         });
         cargoEnvSetup = lib.optionalAttrs setupCargoEnv envCommons.setup
           // cargoSetupOverride;
 
-        shellAliasesList = lib.mapAttrsToList (name: value: ''alias ${name}="${value}"'');
+        shellAliasValueAttrset =
+          { alias
+          , isCargoTest ? false
+          , testTarget ? config.rust.defaultTestTarget
+          }:
+          if isCargoTest
+          then ''CARGO_BUILD_TARGET="${testTarget}" ${alias}''
+          else alias;
+
+        shellAliasValue = value: (
+          if builtins.isString value then value
+          else if builtins.isAttrs value then shellAliasValueAttrset value
+          else abort ("Invalid value for shell alias: ${builtins.toJSON value}")
+        );
+
+        shellAliasesList = lib.mapAttrsToList (name: value: ''alias ${name}="${shellAliasValue value}"'');
         shellAliasesStr = aliases: builtins.concatStringsSep "\n" (shellAliasesList aliases);
 
         extraNativeBuildInputs = nativeBuildInputs;

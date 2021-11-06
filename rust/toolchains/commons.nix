@@ -10,15 +10,13 @@ let
   nt = pkgs.rust-bin.nightly;
   ntl = nt.latest;
 
-  missingValue = ".";
-
   ttt = { arch, type, os, lib }:
     arch +
-    (if type != missingValue then "-${type}" else "") +
+    (if type != null then "-${type}" else "") +
     "-${os}" +
-    (if lib != missingValue then "-${lib}" else "");
+    (if lib != null then "-${lib}" else "");
 
-  createTargetTriple = { arch, type ? missingValue, os, lib ? missingValue }: {
+  createTargetTriple = { arch, type ? null, os, lib ? null }: {
     inherit arch type os lib;
 
     targetTriple = ttt { inherit arch type os lib; };
@@ -69,12 +67,17 @@ rec {
 
   createToolchain =
     { profile, baseExtensions ? [ ] }:
-    { target, toolchain, extraToolchainComponents ? [ ] }: {
-      inherit target;
+    { target ? null
+    , targets ? [ target ]
+    , defaultTarget ? [ target ]
+    , toolchain
+    , extraToolchainComponents ? [ ]
+    }: {
+      inherit targets defaultTarget;
 
       toolchain = (toolchain.t) profile {
         extensions = lib.unique (baseExtensions ++ extraToolchainComponents);
-        targets = [ target ];
+        inherit targets;
       };
 
       isNightly = toolchain.isNightly;
